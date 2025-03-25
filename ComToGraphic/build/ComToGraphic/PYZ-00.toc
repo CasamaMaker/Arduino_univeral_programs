@@ -1,0 +1,2 @@
+('C:\\Users\\m_casamayor\\Documents\\Github\\Arduino_univeral_programs\\ComToGraphic\\build\\ComToGraphic\\PYZ-00.pyz',
+ [])
