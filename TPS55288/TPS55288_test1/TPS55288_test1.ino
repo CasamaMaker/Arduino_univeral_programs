@@ -2,7 +2,7 @@
 
 #include <Wire.h>
 
-#define TPS55288_ADDR 0x75  // Adreça I2C correcta del TPS55288
+#define TPS55288_ADDR 0x74  // Adreça I2C correcta del TPS55288
 
 // Registres
 #define REG_VSET 0x03       // Voltge de sortida
@@ -25,7 +25,6 @@ void escriuRegistre(uint8_t reg, uint16_t valor) {
     Wire.endTransmission();
     delay(100);
 }
-
 void escriuRegistre2(uint8_t reg, uint16_t valor) {
     Wire.beginTransmission(TPS55288_ADDR);
     Wire.write(reg);
@@ -45,8 +44,6 @@ void escriuIComprova(uint8_t reg, uint16_t valor) {
     Serial.print(" | Llegit 0x");
     Serial.println(llegit, HEX);
 }
-
-
 uint8_t llegeixRegistre(uint8_t reg) {
     Wire.beginTransmission(TPS55288_ADDR);
     Wire.write(reg);
@@ -63,7 +60,6 @@ uint8_t llegeixRegistre(uint8_t reg) {
 
     return Wire.read();
 }
-
 void mostraTotsElsRegistres() {
     Serial.println("Llegint registres del TPS55288...\n");
 
@@ -78,9 +74,6 @@ void mostraTotsElsRegistres() {
     }
     Serial.println("\n--- Fi de la lectura ---\n");
 }
-
-
-
 bool comprovaConnexioI2C() {
     Wire.beginTransmission(TPS55288_ADDR);
     return (Wire.endTransmission() == 0);
@@ -97,15 +90,15 @@ void configuraTPS55288() {
     delay(500);
     mostraTotsElsRegistres();
 
-    escriuIComprova(0x06, 0b00000101); //MODE Register
-    escriuIComprova(0x00, 0b11000000); //REF (L)
-    escriuIComprova(0x01, 0b00000011); //REF (H)
+    // escriuIComprova(0x06, 0b00000001); //MODE Register
+    escriuIComprova(0x00, 0x94);//0b11000000); //REF (L)
+    escriuIComprova(0x01, 0x02);//0b00000011); //REF (H)
     // escriuRegistre2(0x00, 0xC03);
     escriuIComprova(0x02, 0b01100100); //IOUT_LIMIT Register
     escriuIComprova(0x03, 0b00000011); //VOUT_SR Register
     escriuIComprova(0x04, 0b00000011); //VOUT_FS Register  // INTFB[1:0] = 11 (1:18)
     escriuIComprova(0x05, 0b11100000); //CDC register
-    escriuIComprova(0x06, 0b00000000); //MODE Register
+    // escriuIComprova(0x06, 0b00000000); //MODE Register
 
     delay(500);
 
@@ -128,8 +121,11 @@ void configuraTPS55288() {
 
 void setup() {
     Serial.begin(115200);
-    Wire.begin();
+    Wire.begin(8, 9);  // SDA = 8, SCL = 9    //arduino uno SDA:A4	SCL:A5
     delay(500);
+
+    Serial.println("Hola");
+
     configuraTPS55288();
 }
 
