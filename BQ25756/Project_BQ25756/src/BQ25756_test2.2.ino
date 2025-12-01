@@ -267,36 +267,30 @@ void configuracioCarregaBateria(){
 
 
   // 7. PRECHARGE/TERMINATION CONTROL (Reg 0x14)
-  // Habilitem precharge i termination
+
   // uint8_t reg14 = llegeixRegistre(0x14);
-  // reg14 |= 0x09;  // EN_TERM=1 (bit3), EN_PRECHG=1 (bit0)
+  // if(enable_temination_control){reg14 |= 0x08;  // EN_TERM=1 (bit3)
+  // }else{reg14 &= ~0x08;}                        // EN_TERM=0 (bit3)
+
+  // if(enable_precharge_control){reg14 |= 0x01;  // EN_TERM=1 (bit3)
+  // }else{reg14 &= ~0x01;}                        // EN_TERM=0 (bit3)
+
   // escriuRegistre8(0x14, reg14);
-  // Serial.println("\nPrecharge & Termination: ENABLED");
 
+  setBitRegistre(0x14, 0, enable_precharge_control);
+  setBitRegistre(0x14, 3, enable_temination_control);
 
-  uint8_t reg14 = llegeixRegistre(0x14);
-  if(enable_temination_control){reg14 |= 0x08;  // EN_TERM=1 (bit3)
-  }else{reg14 &= ~0x08;}                        // EN_TERM=0 (bit3)
-
-  if(enable_precharge_control){reg14 |= 0x01;  // EN_TERM=1 (bit3)
-  }else{reg14 &= ~0x01;}                        // EN_TERM=0 (bit3)
-
-  escriuRegistre8(0x14, reg14);
   Serial.println(enable_precharge_control ? "Precharge: ENABLED" : "Precharge: DISABLED");
-  Serial.println(enable_temination_control ? "Precharge: ENABLED" : "Precharge: DISABLED");
+  Serial.println(enable_temination_control ? "Termination: ENABLED" : "Termination: DISABLED");
 
 
   // 8. TIMER CONTROL (Reg 0x15)
-  // uint8_t reg15 = llegeixRegistre(0x15);
-  // reg15 &= ~(0x30);  // Clear bits [5:4] (WATCHDOG)
-  // reg15 |= 0x0D;     // WATCHDOG=00 (disabled), EN_CHG_TMR=1, CHG_TMR=10 (12hr), EN_TMR2X=1
-  // escriuRegistre8(0x15, reg15);
-  // Serial.println("Watchdog: Disabled, Safety Timer: 12hr");
 
   uint8_t reg15 = llegeixRegistre(0x15);
   reg15 &= ~0x30;     // 1) Netejar bits 5:4 (màscara 0b110000 = 0x30)
   reg15 |= (watchdog << 4);     // 2) Escriure el valor del watchdog (0..3) desplaçat als bits 5:4
   escriuRegistre8(0x15, reg15);
+
   switch (watchdog) {
     case 0: Serial.println("Watchdog: DISABLED"); break;
     case 1: Serial.println("Watchdog: 40s");     break;
@@ -306,15 +300,18 @@ void configuracioCarregaBateria(){
 
   // 9. CHARGER CONTROL (Reg 0x17)
   // Habilitem càrrega (però CE pin encara HIGH)
-  uint8_t reg17 = llegeixRegistre(0x17);
-  // reg17 |= 0x21;   // EN_CHG=1 (bit0), WD_RST=1 (bit5)
-  if(enable_charge){reg17 |= 0x01;        // enable_charge=1 (bit1)
-  }else{reg17 &= ~0x01;}                  // enable_charge=0 (bit1)
+  // uint8_t reg17 = llegeixRegistre(0x17);
+  // // reg17 |= 0x21;   // EN_CHG=1 (bit0), WD_RST=1 (bit5)
+  // if(enable_charge){reg17 |= 0x01;        // enable_charge=1 (bit1)
+  // }else{reg17 &= ~0x01;}                  // enable_charge=0 (bit1)
 
-  if(watchdog_reset){reg17 |= 0x20;       // watchdog_reset=1 (bit1)
-  }else{reg17 &= ~0x20;}                  // watchdog_reset=0 (bit1)
+  // if(watchdog_reset){reg17 |= 0x20;       // watchdog_reset=1 (bit1)
+  // }else{reg17 &= ~0x20;}                  // watchdog_reset=0 (bit1)
 
-  escriuRegistre8(0x17, reg17);
+  // escriuRegistre8(0x17, reg17);
+
+  setBitRegistre(0x17, 0, enable_charge);
+  setBitRegistre(0x17, 5, watchdog_reset);
   Serial.println(enable_charge ? "Charging Control: ENABLED" : "Charging Control: DISABLED");
   Serial.println(watchdog_reset ? "Watchdog reseted" : "");
 
@@ -322,10 +319,12 @@ void configuracioCarregaBateria(){
   // 10. ADC CONTROL (Reg 0x2B)   enable_adc
   // setBitRegistre(0x2B, 7, true);   // ADC_EN = 1
   // Serial.println("ADC: ENABLED");
-  uint8_t reg2B = llegeixRegistre(0x2B);
-  if(enable_adc){reg2B |= 0x80;        // enable_charge=1 (bit1)
-  }else{reg2B &= ~0x80;}                  // enable_charge=0 (bit1)
-  Serial.println(enable_charge ? "ADC: ENABLED" : "ADC: DISABLED");
+  // uint8_t reg2B = llegeixRegistre(0x2B);
+  // if(enable_adc){reg2B |= 0x80;        // enable_charge=1 (bit1)
+  // }else{reg2B &= ~0x80;}                  // enable_charge=0 (bit1)
+
+  setBitRegistre(0x2B, 7, enable_adc);
+  Serial.println(enable_adc ? "ADC: ENABLED" : "ADC: DISABLED");
 
 
 
