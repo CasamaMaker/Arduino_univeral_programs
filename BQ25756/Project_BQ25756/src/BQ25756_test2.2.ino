@@ -1,6 +1,9 @@
 // FUNCIONS CORREGIDES PER BQ25756
 
 #include <Wire.h>
+#include "registers_BQ25756.h"
+#include "configuracio.h"
+
 
 #define BQ25756_I2C_ADDRESS  0x6B
 
@@ -61,6 +64,12 @@ uint16_t llegeixRegistreDoble(uint8_t adresa_MSB) {
   return ((uint16_t)regAlt << 8) | regBaix;
 }
 
+bool llegeixBit(uint8_t reg, uint8_t bit){
+  uint8_t valor_reg = llegeixRegistre(reg);
+  if(bit > 7) return false;              // protecció contra bit fora de rang
+  return (valor_reg & (1 << bit)) != 0;  // retorna true si el bit està a 1, false si és 0
+}
+
 bool setBitRegistre(uint8_t adresa, uint8_t bit, bool valor_bool) {
     if (bit > 7) {
         return false;
@@ -88,98 +97,87 @@ void llegeixTotsElsRegistres() {
   Serial.println("\n========== TOTS ELS REGISTRES ==========");
   
   Serial.print("Charge Voltage Limit :              ");
-  Serial.println(llegeixRegistreDoble(0x00), BIN);
+  Serial.println(llegeixRegistreDoble(REG_CHARGE_VOLTAGE_LIMIT), BIN);
 
   Serial.print("Charge Current Limit :              ");
-  Serial.println(llegeixRegistreDoble(0x02), BIN);
+  Serial.println(llegeixRegistreDoble(REG_CHARGE_CURRENT_LIMIT), BIN);
 
   Serial.print("Input Current DPM Limit :           ");
-  Serial.println(llegeixRegistreDoble(0x06), BIN);
+  Serial.println(llegeixRegistreDoble(REG_INPUT_CURRENT_DPM_LIMIT), BIN);
 
   Serial.print("Input Voltage DPM Limit :           ");
-  Serial.println(llegeixRegistreDoble(0x08), BIN);
+  Serial.println(llegeixRegistreDoble(REG_INPUT_VOLTAGE_DPM_LIMIT), BIN);
 
   Serial.print("Reverse Mode Input Current Limit :  ");
-  Serial.println(llegeixRegistreDoble(0x0A), BIN);
+  Serial.println(llegeixRegistreDoble(REG_REVERSE_MODE_INPUT_CURRENT_LIMIT), BIN);
 
   Serial.print("Reverse Mode Input Voltage Limit :  ");
-  Serial.println(llegeixRegistreDoble(0x0C), BIN);
+  Serial.println(llegeixRegistreDoble(REG_REVERSE_MODE_INPUT_VOLTAGE_LIMIT), BIN);
 
   Serial.print("Precharge Current Limit :           ");
-  Serial.println(llegeixRegistreDoble(0x10), BIN);
+  Serial.println(llegeixRegistreDoble(REG_PRECHARGE_CURRENT_LIMIT), BIN);
 
   Serial.print("Termination Current Limit :         ");
-  Serial.println(llegeixRegistreDoble(0x12), BIN);
+  Serial.println(llegeixRegistreDoble(REG_TERMINATION_CURRENT_LIMIT), BIN);
 
   Serial.print("Precharge and Termination Control  :");
-  Serial.println(llegeixRegistreDoble(0x14), BIN);
+  Serial.println(llegeixRegistreDoble(REG_PRECHARGE_AND_TERMINATION_CONTROL), BIN);
 
   Serial.print("Timer Control :                     ");
-  Serial.println(llegeixRegistre(0x15), BIN);
+  Serial.println(llegeixRegistre(REG_TIMER_CONTROL), BIN);
 
   Serial.print("Three-Stage Charge Control :        ");
-  Serial.println(llegeixRegistre(0x16), BIN);
+  Serial.println(llegeixRegistre(REG_THREE_STAGE_CHARGE_CONTROL), BIN);
 
   Serial.print("Charger Control :                   ");
-  Serial.println(llegeixRegistre(0x17), BIN);
+  Serial.println(llegeixRegistre(REG_CHARGER_CONTROL), BIN);
 
   Serial.print("Pin Control :                       ");
-  Serial.println(llegeixRegistre(0x18), BIN);
+  Serial.println(llegeixRegistre(REG_PIN_CONTROL), BIN);
 
   Serial.print("Power Path and Reverse Mode Control:");
-  Serial.println(llegeixRegistre(0x19), BIN);
+  Serial.println(llegeixRegistre(REG_POWER_PATH_AND_REVERSE_MODE_CONTROL), BIN);
 
   Serial.print("MPPT Control :                      ");
-  Serial.println(llegeixRegistre(0x1A), BIN);
+  Serial.println(llegeixRegistre(REG_MPPT_CONTROL), BIN);
+
+
 
   Serial.print("Charger Status 1 :                  ");
-  Serial.println(llegeixRegistre(0x21), BIN);
+  Serial.println(llegeixRegistre(REG_CHARGER_STATUS_1), BIN);
 
   Serial.print("Charger Status 2 :                  ");
-  Serial.println(llegeixRegistre(0x22), BIN);
+  Serial.println(llegeixRegistre(REG_CHARGER_STATUS_2), BIN);
 
   Serial.print("Charger Status 3 :                  ");
-  Serial.println(llegeixRegistre(0x23), BIN);
+  Serial.println(llegeixRegistre(REG_CHARGER_STATUS_3), BIN);
 
   Serial.print("Fault Status :                      ");
-  Serial.println(llegeixRegistre(0x24), BIN);
+  Serial.println(llegeixRegistre(REG_FAULT_STATUS), BIN);
 
   Serial.print("Charger Flag 1 :                    ");
-  Serial.println(llegeixRegistre(0x25), BIN);
+  Serial.println(llegeixRegistre(REG_CHARGER_FLAG_1), BIN);
 
   Serial.print("Charger Flag 2 :                    ");
-  Serial.println(llegeixRegistre(0x26), BIN);
+  Serial.println(llegeixRegistre(REG_CHARGER_FLAG_2), BIN);
 
   Serial.print("Fault Flag :                        ");
-  Serial.println(llegeixRegistre(0x27), BIN);
+  Serial.println(llegeixRegistre(REG_FAULT_FLAG), BIN);
+
+
 
   Serial.print("Fault Mask :                        ");
-  Serial.println(llegeixRegistre(0x2A), BIN);
+  Serial.println(llegeixRegistre(REG_FAULT_MASK), BIN);
 
   Serial.print("ADC Control :                       ");
-  Serial.println(llegeixRegistre(0x2B), BIN);
+  Serial.println(llegeixRegistre(REG_ADC_CONTROL), BIN);
 
   Serial.print("ADC Channel Control  :              ");
-  Serial.println(llegeixRegistre(0x2C), BIN);
+  Serial.println(llegeixRegistre(REG_ADC_CHANNEL_CONTROL), BIN);
 
-  Serial.print("IAC ADC :                           ");
-  Serial.println(llegeixRegistreDoble(0x2D), BIN);
+  
 
-  Serial.print("IBAT ADC :                          ");
-  Serial.println(llegeixRegistreDoble(0x2F), BIN);
 
-  Serial.print("VAC ADC :                           ");
-  Serial.println(llegeixRegistreDoble(0x31), BIN);
-  
-  Serial.print("VBAT ADC :                          ");
-  Serial.println(llegeixRegistreDoble(0x33), BIN);
-  
-  Serial.print("TS ADC :                            ");
-  Serial.println(llegeixRegistreDoble(0x37), BIN);
-  
-  Serial.print("VFB ADC :                           ");
-  Serial.println(llegeixRegistreDoble(0x39), BIN);
-  
   Serial.print("Gate Driver Strength Control :      ");
   Serial.println(llegeixRegistre(0x3B), BIN);
   
@@ -192,140 +190,120 @@ void llegeixTotsElsRegistres() {
 void configuracioCarregaBateria(){
   Serial.println("\n========== CONFIGURACIÓ CÀRREGA BATERIA AGM 12V/7.2Ah ==========");
 
-  // Configuració HW
-  const float Rtop = 249000.0;
-  const float Rbot = 30000.0;
-  const float Rfbg = 33.0;
+  // // Configuració HW
+  // const float Rtop = 249000.0;
+  // const float Rbot = 30000.0;
+  // const float Rfbg = 33.0;
 
-  //Configuració SW
-  const float Vcharge = 14.25;    // Volts
-  const float Icharge = 1.00;     // Amps
-  const float Iin_lim = 3.00;     // Amps
-  const float Vin_lim = 10.00;    // Volts
-  const float Iprecharge = 0.30;  // Amps
-  const float ITermination = 0.30;  // Amps
+  // //Configuració SW
+  // const float Vcharge = 14.25;    // Volts
+  // const float Icharge = 2.00;     // Amps
+  // const float Iin_lim = 3.00;     // Amps
+  // const float Vin_lim = 10.00;    // Volts
+  // const float Iprecharge = 0.30;  // Amps
+  // const float ITermination = 0.30;  // Amps
 
-  const bool  enable_precharge_control = true;
-  const bool  enable_temination_control = true;
-  const bool  enable_charge = true;
-  const bool  watchdog_reset = true;
-  const bool  enable_adc = true;
+  // const bool  enable_precharge_control = true;
+  // const bool  enable_temination_control = true;
+  // const bool  enable_charge = true;
+  // const bool  watchdog_reset = true;
+  // const bool  enable_adc = true;
 
-  const int watchdog = 0;   //  00b = Disable;    01b = 40s;    10b = 80s;    11b = 160s
+  // const int watchdog = 0;   //  00b = Disable;          01b = 40s;              10b = 80s;                11b = 160s
+  // const int Vbat_lowv = 0;  //  00b = 30% x VFB_REG;    01b = 55% x VFB_REG;    10b = 66.7% x VFB_REG;    11b = 71.4% x VFB_REG
+
+
+
+  //###################################### DO NOT MODIFY ########################################
 
   // Desactivem els pins de control per utilitzar I2C
-  setBitRegistre(0x18, 7, false);   // EN_ICHG_PIN = 0 (disable)
-  setBitRegistre(0x18, 6, false);   // EN_ILIM_HIZ_PIN = 0 (disable)
+  setBitRegistre(REG_PIN_CONTROL, 7, false);   // EN_ICHG_PIN = 0 (disable)
+  setBitRegistre(REG_PIN_CONTROL, 6, false);   // EN_ILIM_HIZ_PIN = 0 (disable)
   delay(10);
 
   // 1. CHARGE VOLTAGE LIMIT (Reg 0x00-0x01)
-  // uint16_t charge_voltage = 31; // VBATREG = 14.55
   float Vfeedback  = Vcharge*(Rbot + Rfbg)/(Rtop + Rbot + Rfbg);
   int charge_voltage_steps = (int) round((Vfeedback - 1.504) * 1000.0 / 2.0);
-  escriuRegistre16(0x00, charge_voltage_steps);
-  Serial.print("Charge Voltage:           "); Serial.print(Vcharge, 2); Serial.print("V   [steps: "); Serial.print(charge_voltage_steps); Serial.print(", Vfb: "); Serial.print(Vfeedback, 3); Serial.println("v]");
+  escriuRegistre16(REG_CHARGE_VOLTAGE_LIMIT, charge_voltage_steps);
+  Serial.print("Charge Voltage:           "); Serial.print(Vcharge, 2); Serial.print("V    [steps: "); Serial.print(charge_voltage_steps); Serial.print(", Vfb: "); Serial.print(Vfeedback, 3); Serial.println("v]");
 
   // 2. CHARGE CURRENT LIMIT (Reg 0x02-0x03)
-  // uint16_t charge_current = (10 << 2);  // Per 0.8A: 800mA/50mA = 8, 2 bits shift
   int charge_current_steps = (int) round((Icharge - 0.4) /0.05);
-  escriuRegistre16(0x02, (charge_current_steps << 2));
-  // Serial.print("Charge Current:           "); Serial.print(((charge_current>>2)*50+400)/1000.0); Serial.println("A");
+  escriuRegistre16(REG_CHARGE_CURRENT_LIMIT, (charge_current_steps << 2));
   Serial.print("Charge Current:           "); Serial.print(Icharge); Serial.print(" A    [steps: "); Serial.print(charge_current_steps); Serial.println("]");
 
   // 3. INPUT CURRENT LIMIT (Reg 0x06-0x07)
-  // uint16_t input_current = (40 << 2);  // Per 3A: 3000mA/50mA = 60, 2 bits shift
-  // escriuRegistre16(0x06, input_current);
-  // Serial.print("Input Current DPM Limit:  "); Serial.print(((input_current>>2)*50+400)/1000.0); Serial.println("A");
   int input_current_steps = (int) round((Iin_lim - 0.4) /0.05);
-  escriuRegistre16(0x06, (input_current_steps << 2));
+  escriuRegistre16(REG_INPUT_CURRENT_DPM_LIMIT, (input_current_steps << 2));
   Serial.print("Input Current:            "); Serial.print(Iin_lim); Serial.print(" A    [steps: "); Serial.print(input_current_steps); Serial.println("]");
 
-  // 4. INPUT VOLTAGE LIMIT (Reg 0x08-0x09) 
-  // uint16_t input_voltage = (290 << 2);  // Per 10V: 10000mV-4100mV/20mV = 290, 2 bits shift
-  // escriuRegistre16(0x08, input_voltage);
-  // Serial.print("Input Voltage DPM Limit:  "); Serial.print(((input_voltage>>2)*20+4200)/1000.0); Serial.println("V");
+  // 4. INPUT VOLTAGE LIMIT (Reg 0x08-0x09)
   int input_voltage_steps = (int) round((Vin_lim - 4.20) /0.02);
-  escriuRegistre16(0x08, (input_voltage_steps << 2));
-  Serial.print("Input Current:            "); Serial.print(Vin_lim); Serial.print(" V   [steps: "); Serial.print(input_voltage_steps); Serial.println("]");
+  escriuRegistre16(REG_INPUT_VOLTAGE_DPM_LIMIT, (input_voltage_steps << 2));
+  Serial.print("Input Voltage:            "); Serial.print(Vin_lim); Serial.print(" V   [steps: "); Serial.print(input_voltage_steps); Serial.println("]");
 
   // 5. PRECHARGE CURRENT (Reg 0x10-0x11)    >>> 10-20% del charge current
-  // uint16_t precharge_current = (8 << 2);  // Per 0.4A: 400mA-250mA/50mA = 3, 2 bits shift
-  // escriuRegistre16(0x10, precharge_current);
-  // Serial.print("Precharge Current:        "); Serial.print(((precharge_current>>2)*50+250)/1000.0); Serial.println("A");
   int precharge_current_steps = (int) round((Iprecharge - 0.25) /0.05);
-  escriuRegistre16(0x10, (precharge_current_steps << 2));
-  Serial.print("Input Current:            "); Serial.print(Iprecharge); Serial.print(" A    [steps: "); Serial.print(precharge_current_steps); Serial.println("]");
+  escriuRegistre16(REG_PRECHARGE_CURRENT_LIMIT, (precharge_current_steps << 2));
+  Serial.print("Precharge Current:            "); Serial.print(Iprecharge); Serial.print(" A    [steps: "); Serial.print(precharge_current_steps); Serial.println("]");
 
   // 6. TERMINATION CURRENT (Reg 0x12-0x13)   >>> 5-10% del charge current
-  // uint16_t term_current = (3 << 2);  // Per 250mA(min): 250mA-250mA/50mA = 0, 2 bits shift
-  // escriuRegistre16(0x12, term_current);
-  // Serial.print("Termination Current:      "); Serial.print(((term_current>>2)*50+250)/1000.0); Serial.println("A");
   int termination_current_steps = (int) round((ITermination - 0.25) /0.05);
-  escriuRegistre16(0x12, (precharge_current_steps << 2));
-  Serial.print("Input Current:            "); Serial.print(ITermination); Serial.print(" A    [steps: "); Serial.print(termination_current_steps); Serial.println("]");
+  escriuRegistre16(REG_TERMINATION_CURRENT_LIMIT, (precharge_current_steps << 2));
+  Serial.print("Termination Current:            "); Serial.print(ITermination); Serial.print(" A    [steps: "); Serial.print(termination_current_steps); Serial.println("]");
+
 
 
 
   // 7. PRECHARGE/TERMINATION CONTROL (Reg 0x14)
+  setBitRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL, 0, enable_precharge_control);
+  setBitRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL, 3, enable_temination_control);
 
-  // uint8_t reg14 = llegeixRegistre(0x14);
-  // if(enable_temination_control){reg14 |= 0x08;  // EN_TERM=1 (bit3)
-  // }else{reg14 &= ~0x08;}                        // EN_TERM=0 (bit3)
-
-  // if(enable_precharge_control){reg14 |= 0x01;  // EN_TERM=1 (bit3)
-  // }else{reg14 &= ~0x01;}                        // EN_TERM=0 (bit3)
-
-  // escriuRegistre8(0x14, reg14);
-
-  setBitRegistre(0x14, 0, enable_precharge_control);
-  setBitRegistre(0x14, 3, enable_temination_control);
-
-  Serial.println(enable_precharge_control ? "Precharge: ENABLED" : "Precharge: DISABLED");
-  Serial.println(enable_temination_control ? "Termination: ENABLED" : "Termination: DISABLED");
+  Serial.println(enable_precharge_control ?  "Precharge:        ENABLED" : "Precharge:        DISABLED");
+  Serial.println(enable_temination_control ? "Termination:      ENABLED" : "Termination:      DISABLED");
 
 
   // 8. TIMER CONTROL (Reg 0x15)
-
-  uint8_t reg15 = llegeixRegistre(0x15);
-  reg15 &= ~0x30;     // 1) Netejar bits 5:4 (màscara 0b110000 = 0x30)
+  setBitRegistre(REG_TIMER_CONTROL, 4, false);     // 1) Netejar bits 1:2
+  setBitRegistre(REG_TIMER_CONTROL, 5, false);
+  // reg15 &= ~0x30;     // 1) Netejar bits 5:4 (màscara 0b110000 = 0x30)
+  uint8_t reg15 = llegeixRegistre(REG_TIMER_CONTROL);
   reg15 |= (watchdog << 4);     // 2) Escriure el valor del watchdog (0..3) desplaçat als bits 5:4
-  escriuRegistre8(0x15, reg15);
+  escriuRegistre8(REG_TIMER_CONTROL, reg15);
 
   switch (watchdog) {
-    case 0: Serial.println("Watchdog: DISABLED"); break;
-    case 1: Serial.println("Watchdog: 40s");     break;
-    case 2: Serial.println("Watchdog: 80s");     break;
-    case 3: Serial.println("Watchdog: 160s");    break;
+    case 0: Serial.println("Watchdog:         DISABLED"); break;
+    case 1: Serial.println("Watchdog:         40s");     break;
+    case 2: Serial.println("Watchdog:         80s");     break;
+    case 3: Serial.println("Watchdog:         160s");    break;
   }
 
   // 9. CHARGER CONTROL (Reg 0x17)
-  // Habilitem càrrega (però CE pin encara HIGH)
-  // uint8_t reg17 = llegeixRegistre(0x17);
-  // // reg17 |= 0x21;   // EN_CHG=1 (bit0), WD_RST=1 (bit5)
-  // if(enable_charge){reg17 |= 0x01;        // enable_charge=1 (bit1)
-  // }else{reg17 &= ~0x01;}                  // enable_charge=0 (bit1)
+  setBitRegistre(REG_CHARGER_CONTROL, 0, enable_charge);
+  setBitRegistre(REG_CHARGER_CONTROL, 5, watchdog_reset);
 
-  // if(watchdog_reset){reg17 |= 0x20;       // watchdog_reset=1 (bit1)
-  // }else{reg17 &= ~0x20;}                  // watchdog_reset=0 (bit1)
-
-  // escriuRegistre8(0x17, reg17);
-
-  setBitRegistre(0x17, 0, enable_charge);
-  setBitRegistre(0x17, 5, watchdog_reset);
   Serial.println(enable_charge ? "Charging Control: ENABLED" : "Charging Control: DISABLED");
   Serial.println(watchdog_reset ? "Watchdog reseted" : "");
 
 
   // 10. ADC CONTROL (Reg 0x2B)   enable_adc
-  // setBitRegistre(0x2B, 7, true);   // ADC_EN = 1
-  // Serial.println("ADC: ENABLED");
-  // uint8_t reg2B = llegeixRegistre(0x2B);
-  // if(enable_adc){reg2B |= 0x80;        // enable_charge=1 (bit1)
-  // }else{reg2B &= ~0x80;}                  // enable_charge=0 (bit1)
+  setBitRegistre(REG_ADC_CONTROL, 7, enable_adc);
+  Serial.println(enable_adc ? "ADC:              ENABLED" : "ADC:              DISABLED");
 
-  setBitRegistre(0x2B, 7, enable_adc);
-  Serial.println(enable_adc ? "ADC: ENABLED" : "ADC: DISABLED");
 
+  // 11. BATTERY THRESHOLD (Reg 0x14)
+  setBitRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL, 1, false);     // 1) Netejar bits 1:2
+  setBitRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL, 2, false);
+  uint8_t reg14 = llegeixRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL);
+  reg14 |= (Vbat_lowv << 1);           // 2) Escriure el valor del Vbat_lowv (0..3) desplaçat als bits
+  escriuRegistre8(REG_PRECHARGE_AND_TERMINATION_CONTROL, reg14);
+
+  switch (Vbat_lowv) {
+    case 0: Serial.print("Vbat_lowv:        30% x VFB_REG --> ");Serial.println(Vfeedback*0.3); break;
+    case 1: Serial.print("Vbat_lowv:        55% x VFB_REG");     Serial.println(Vfeedback*0.55); break;
+    case 2: Serial.print("Vbat_lowv:        66.7% x VFB_REG");   Serial.println(Vfeedback*0.667); break;
+    case 3: Serial.print("Vbat_lowv:        71.4% x VFB_REG");   Serial.println(Vfeedback*0.714); break;
+  }
 
 
   Serial.println("\n✓✓✓ CONFIGURACIÓ COMPLETADA ✓✓✓");
@@ -333,25 +311,28 @@ void configuracioCarregaBateria(){
 
 void configuracioInicial(){
   // Desactiva watchdog
-  setBitRegistre(0x15, 4, false);
-  setBitRegistre(0x15, 5, false);
-  delay(10);
+  // setBitRegistre(0x15, 4, false);
+  // setBitRegistre(0x15, 5, false);
+  // delay(10);
 
   // Activa càrrega
-  setBitRegistre(0x17, 0, true);    // EN_CHG
-  delay(10);
+  // setBitRegistre(0x17, 0, true);    // EN_CHG
+  // delay(10);
 
   // Activa ADC
-  setBitRegistre(0x2B, 7, true);    // ADC_EN
-  delay(10);
+  // setBitRegistre(0x2B, 7, true);    // ADC_EN
+  // delay(10);
 
   // Activa tots els canals ADC (desactiva tots els bits _DIS)
-  setBitRegistre(0x2C, 7, false);   // IAC_ADC_DIS = 0
-  setBitRegistre(0x2C, 6, false);   // IBAT_ADC_DIS = 0
-  setBitRegistre(0x2C, 5, false);   // VAC_ADC_DIS = 0
-  setBitRegistre(0x2C, 4, false);   // VBAT_ADC_DIS = 0
-  setBitRegistre(0x2C, 1, false);   // TS_ADC_DIS = 0
-  setBitRegistre(0x2C, 0, false);   // VFB_ADC_DIS = 0
+  setBitRegistre(REG_ADC_CHANNEL_CONTROL, 7, false);   // IAC_ADC_DIS = 0
+  setBitRegistre(REG_ADC_CHANNEL_CONTROL, 6, false);   // IBAT_ADC_DIS = 0
+  setBitRegistre(REG_ADC_CHANNEL_CONTROL, 5, false);   // VAC_ADC_DIS = 0
+  setBitRegistre(REG_ADC_CHANNEL_CONTROL, 4, false);   // VBAT_ADC_DIS = 0
+  setBitRegistre(REG_ADC_CHANNEL_CONTROL, 1, false);   // TS_ADC_DIS = 0
+  setBitRegistre(REG_ADC_CHANNEL_CONTROL, 0, false);   // VFB_ADC_DIS = 0
+
+
+  setBitRegistre(REG_TS_CHARGING_REGION_BEHAVIOR_CONTROL, 0, false);   // EN_TS = 0
   delay(10);
 
   Serial.println("Configuració completa!");
@@ -364,29 +345,32 @@ void configuracioInicial(){
 }
 
 void lecturaADCs(){
-  setBitRegistre(0x2B, 7, true);    // ADC_EN
-  delay(10);
-  setBitRegistre(0x2B, 6, true);
+  setBitRegistre(REG_ADC_CONTROL, 7, true);    // ADC_EN
+  delay(50);
+  setBitRegistre(REG_ADC_CONTROL, 6, true);
+  delay(50);
+
+  while(!llegeixBit(REG_CHARGER_STATUS_1, 7)) delay(10);  // ADC_DONE_STAT: Conversion complete
+
+  int16_t iac_raw = (int16_t) llegeixRegistreDoble(REG_IAC_ADC);
+  delay(50);
+  int16_t ibat_raw = (int16_t) llegeixRegistreDoble(REG_IBAT_ADC);    //Quan la bateria esta desconectada, pot donar valors erronis
+  delay(50);
+  uint16_t vac_raw = llegeixRegistreDoble(REG_VAC_ADC);
+  delay(50);
+  uint16_t vbat_raw = llegeixRegistreDoble(REG_VBAT_ADC);
+  delay(50);
+  uint16_t ts_raw = llegeixRegistreDoble(REG_TS_ADC);
+  delay(50);
+  uint16_t vfb_raw = llegeixRegistreDoble(REG_VFB_ADC);
   delay(50);
   
-  // uint16_t iac_raw = llegeixRegistreDoble(0x2D);
-  // uint16_t ibat_raw = llegeixRegistreDoble(0x2F);
-  int16_t iac_raw = (int16_t) llegeixRegistreDoble(0x2D);
-  delay(10);
-  int16_t ibat_raw = (int16_t) llegeixRegistreDoble(0x2F);
-  delay(10);
-  uint16_t vac_raw = llegeixRegistreDoble(0x31);
-  delay(10);
-  uint16_t vbat_raw = llegeixRegistreDoble(0x33);
-  delay(10);
-  uint16_t ts_raw = llegeixRegistreDoble(0x37);
-  delay(10);
-  uint16_t vfb_raw = llegeixRegistreDoble(0x39);
-  delay(10);
-  
-  Serial.print("IAC: "); Serial.print(iac_raw * 0.8f); Serial.print(" mA | IBAT: "); Serial.print(ibat_raw * 2.0f);
-  Serial.print(" mA | VAC: "); Serial.print(vac_raw * 0.002f); Serial.print(" V | VBAT: "); Serial.print(vbat_raw * 0.002f);
-  Serial.print(" V | TS: "); Serial.print(ts_raw); Serial.print(" | VFB: "); Serial.print(vfb_raw * 0.001); Serial.println(" V");
+  Serial.print("IAC: ");      Serial.print(iac_raw * 0.8f);     Serial.print(" mA | ");
+  Serial.print("IBAT: ");     Serial.print(ibat_raw * 2.0f);    Serial.print(" mA | ");
+  Serial.print("VAC: ");      Serial.print(vac_raw * 0.002f);   Serial.print(" V | ");
+  Serial.print("VBAT: ");     Serial.print(vbat_raw * 0.002f);  Serial.print(" V | ");
+  Serial.print("TS: ");       Serial.print(ts_raw);             Serial.print(" | ");
+  Serial.print("VFB: ");      Serial.print(vfb_raw * 0.001);    Serial.println(" V");
 
 }
 
@@ -394,7 +378,7 @@ void lecturaStatus(){
   Serial.println("\n========== REGISTRES DE STATUS I ERRORS ==========");
   
   // CHARGER STATUS 1 (0x21)
-  uint8_t status1 = llegeixRegistre(0x21);
+  uint8_t status1 = llegeixRegistre(REG_CHARGER_STATUS_1);
   Serial.print("Charger Status 1 (0x21): 0b");
   Serial.println(status1, BIN);
   Serial.print("  [7] ADC_DONE_STAT: ");
@@ -419,7 +403,7 @@ void lecturaStatus(){
   }
   
   // CHARGER STATUS 2 (0x22)
-  uint8_t status2 = llegeixRegistre(0x22);
+  uint8_t status2 = llegeixRegistre(REG_CHARGER_STATUS_2);
   Serial.print("\nCharger Status 2 (0x22): 0b");
   Serial.println(status2, BIN);
   Serial.print("  [7] PG_STAT: ");
@@ -444,7 +428,7 @@ void lecturaStatus(){
   }
   
   // CHARGER STATUS 3 (0x23)
-  uint8_t status3 = llegeixRegistre(0x23);
+  uint8_t status3 = llegeixRegistre(REG_CHARGER_STATUS_3);
   Serial.print("\nCharger Status 3 (0x23): 0b");
   Serial.println(status3, BIN);
   Serial.print("  [5:4] FSW_SYNC_STAT: ");
@@ -461,7 +445,7 @@ void lecturaStatus(){
   Serial.println((status3 & 0x04) ? "Reverse Mode ON" : "Reverse Mode OFF");
   
   // FAULT STATUS (0x24)
-  uint8_t fault = llegeixRegistre(0x24);
+  uint8_t fault = llegeixRegistre(REG_FAULT_STATUS);
   Serial.print("\nFault Status (0x24): 0b");
   Serial.println(fault, BIN);
   if (fault == 0) {
@@ -478,7 +462,7 @@ void lecturaStatus(){
   }
   
   // CHARGER FLAG 1 (0x25) - Clear on read
-  uint8_t flag1 = llegeixRegistre(0x25);
+  uint8_t flag1 = llegeixRegistre(REG_CHARGER_FLAG_1);
   Serial.print("\nCharger Flag 1 (0x25): 0b");
   Serial.println(flag1, BIN);
   if (flag1 != 0) {
@@ -492,7 +476,7 @@ void lecturaStatus(){
   }
   
   // CHARGER FLAG 2 (0x26) - Clear on read
-  uint8_t flag2 = llegeixRegistre(0x26);
+  uint8_t flag2 = llegeixRegistre(REG_CHARGER_FLAG_2);
   Serial.print("Charger Flag 2 (0x26): 0b");
   Serial.println(flag2, BIN);
   if (flag2 != 0) {
@@ -505,7 +489,7 @@ void lecturaStatus(){
   }
   
   // FAULT FLAG (0x27) - Clear on read
-  uint8_t fault_flag = llegeixRegistre(0x27);
+  uint8_t fault_flag = llegeixRegistre(REG_FAULT_FLAG);
   Serial.print("Fault Flag (0x27): 0b");
   Serial.println(fault_flag, BIN);
   if (fault_flag != 0) {
@@ -581,7 +565,7 @@ void loop() {
 
   // Watchdog reset periòdic
   static unsigned long previousTime = 0;
-  if (millis() - previousTime > 1000) {
+  if (millis() - previousTime > 100) {
     // setBitRegistre(0x17, 5, true);    // WD_RST
     lecturaADCs();
     previousTime = millis();
