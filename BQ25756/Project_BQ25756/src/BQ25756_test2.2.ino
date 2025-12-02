@@ -190,32 +190,6 @@ void llegeixTotsElsRegistres() {
 void configuracioCarregaBateria(){
   Serial.println("\n========== CONFIGURACIÓ CÀRREGA BATERIA AGM 12V/7.2Ah ==========");
 
-  // // Configuració HW
-  // const float Rtop = 249000.0;
-  // const float Rbot = 30000.0;
-  // const float Rfbg = 33.0;
-
-  // //Configuració SW
-  // const float Vcharge = 14.25;    // Volts
-  // const float Icharge = 2.00;     // Amps
-  // const float Iin_lim = 3.00;     // Amps
-  // const float Vin_lim = 10.00;    // Volts
-  // const float Iprecharge = 0.30;  // Amps
-  // const float ITermination = 0.30;  // Amps
-
-  // const bool  enable_precharge_control = true;
-  // const bool  enable_temination_control = true;
-  // const bool  enable_charge = true;
-  // const bool  watchdog_reset = true;
-  // const bool  enable_adc = true;
-
-  // const int watchdog = 0;   //  00b = Disable;          01b = 40s;              10b = 80s;                11b = 160s
-  // const int Vbat_lowv = 0;  //  00b = 30% x VFB_REG;    01b = 55% x VFB_REG;    10b = 66.7% x VFB_REG;    11b = 71.4% x VFB_REG
-
-
-
-  //###################################### DO NOT MODIFY ########################################
-
   // Desactivem els pins de control per utilitzar I2C
   setBitRegistre(REG_PIN_CONTROL, 7, false);   // EN_ICHG_PIN = 0 (disable)
   setBitRegistre(REG_PIN_CONTROL, 6, false);   // EN_ILIM_HIZ_PIN = 0 (disable)
@@ -223,36 +197,40 @@ void configuracioCarregaBateria(){
 
   // 1. CHARGE VOLTAGE LIMIT (Reg 0x00-0x01)
   float Vfeedback  = Vcharge*(Rbot + Rfbg)/(Rtop + Rbot + Rfbg);
-  int charge_voltage_steps = (int) round((Vfeedback - 1.504) * 1000.0 / 2.0);
+  int charge_voltage_steps = (int) round((Vfeedback - 1.504) * 1000.0 / 2.0);   // Vfeedback min = 0v --> step 0
   escriuRegistre16(REG_CHARGE_VOLTAGE_LIMIT, charge_voltage_steps);
   Serial.print("Charge Voltage:           "); Serial.print(Vcharge, 2); Serial.print("V    [steps: "); Serial.print(charge_voltage_steps); Serial.print(", Vfb: "); Serial.print(Vfeedback, 3); Serial.println("v]");
 
   // 2. CHARGE CURRENT LIMIT (Reg 0x02-0x03)
-  int charge_current_steps = (int) round((Icharge - 0.4) /0.05);
+  int charge_current_steps = (int) round(Icharge/0.05);                 // Icharge min = 400mA --> step 8
   escriuRegistre16(REG_CHARGE_CURRENT_LIMIT, (charge_current_steps << 2));
   Serial.print("Charge Current:           "); Serial.print(Icharge); Serial.print(" A    [steps: "); Serial.print(charge_current_steps); Serial.println("]");
 
   // 3. INPUT CURRENT LIMIT (Reg 0x06-0x07)
-  int input_current_steps = (int) round((Iin_lim - 0.4) /0.05);
+  int input_current_steps = (int) round(Iin_lim/0.05);           // Iin_lim min = 400mA --> step 5
   escriuRegistre16(REG_INPUT_CURRENT_DPM_LIMIT, (input_current_steps << 2));
   Serial.print("Input Current:            "); Serial.print(Iin_lim); Serial.print(" A    [steps: "); Serial.print(input_current_steps); Serial.println("]");
 
   // 4. INPUT VOLTAGE LIMIT (Reg 0x08-0x09)
-  int input_voltage_steps = (int) round((Vin_lim - 4.20) /0.02);
+  int input_voltage_steps = (int) round(Vin_lim/0.02);                    // Vin_lim min = 4.2v --> step 210
   escriuRegistre16(REG_INPUT_VOLTAGE_DPM_LIMIT, (input_voltage_steps << 2));
   Serial.print("Input Voltage:            "); Serial.print(Vin_lim); Serial.print(" V   [steps: "); Serial.print(input_voltage_steps); Serial.println("]");
 
   // 5. PRECHARGE CURRENT (Reg 0x10-0x11)    >>> 10-20% del charge current
-  int precharge_current_steps = (int) round((Iprecharge - 0.25) /0.05);
+  int precharge_current_steps = (int) round(Iprecharge/0.05);         // Iprecharge min = 250mA --> step 5
   escriuRegistre16(REG_PRECHARGE_CURRENT_LIMIT, (precharge_current_steps << 2));
-  Serial.print("Precharge Current:            "); Serial.print(Iprecharge); Serial.print(" A    [steps: "); Serial.print(precharge_current_steps); Serial.println("]");
+  Serial.print("Precharge Current:        "); Serial.print(Iprecharge); Serial.print(" A    [steps: "); Serial.print(precharge_current_steps); Serial.println("]");
+
+  delay(50);
+  Serial.println(llegeixRegistreDoble(REG_PRECHARGE_CURRENT_LIMIT)>>2);
 
   // 6. TERMINATION CURRENT (Reg 0x12-0x13)   >>> 5-10% del charge current
-  int termination_current_steps = (int) round((ITermination - 0.25) /0.05);
-  escriuRegistre16(REG_TERMINATION_CURRENT_LIMIT, (precharge_current_steps << 2));
-  Serial.print("Termination Current:            "); Serial.print(ITermination); Serial.print(" A    [steps: "); Serial.print(termination_current_steps); Serial.println("]");
+  int termination_current_steps = (int) round(ITermination/0.05);      // ITermination min = 250mA --> step 5
+  escriuRegistre16(REG_TERMINATION_CURRENT_LIMIT, (termination_current_steps << 2));
+  Serial.print("Termination Current:      "); Serial.print(ITermination); Serial.print(" A    [steps: "); Serial.print(termination_current_steps); Serial.println("]");
 
-
+  delay(50);
+  Serial.println(llegeixRegistreDoble(REG_TERMINATION_CURRENT_LIMIT)>>2);
 
 
   // 7. PRECHARGE/TERMINATION CONTROL (Reg 0x14)
@@ -566,7 +544,7 @@ void loop() {
   // Watchdog reset periòdic
   static unsigned long previousTime = 0;
   if (millis() - previousTime > 100) {
-    // setBitRegistre(0x17, 5, true);    // WD_RST
+    setBitRegistre(0x17, 5, true);    // WD_RST
     lecturaADCs();
     previousTime = millis();
   }
