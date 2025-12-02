@@ -5,7 +5,7 @@
 #include "configuracio.h"
 
 
-#define BQ25756_I2C_ADDRESS  0x6B
+
 
 // Escriu un registre de 8 bits (registres de control)
 void escriuRegistre8(uint8_t reg, uint8_t value) {
@@ -58,10 +58,10 @@ uint16_t llegeixRegistreDoble(uint8_t adresa_MSB) {
 
   //  uint8_t regAlt = Wire.read();
   //  uint8_t regBaix = Wire.read();
-  uint8_t regBaix = Wire.read();
-  uint8_t regAlt = Wire.read();
+  uint8_t low_byte = Wire.read();
+  uint8_t high_byte = Wire.read();
 
-  return ((uint16_t)regAlt << 8) | regBaix;
+  return ((uint16_t)high_byte << 8) | low_byte;
 }
 
 bool llegeixBit(uint8_t reg, uint8_t bit){
@@ -246,10 +246,10 @@ void configuracioCarregaBateria(){
   setBitRegistre(REG_TIMER_CONTROL, 5, false);
   // reg15 &= ~0x30;     // 1) Netejar bits 5:4 (màscara 0b110000 = 0x30)
   uint8_t reg15 = llegeixRegistre(REG_TIMER_CONTROL);
-  reg15 |= (watchdog << 4);     // 2) Escriure el valor del watchdog (0..3) desplaçat als bits 5:4
+  reg15 |= (WATCHDOG << 4);     // 2) Escriure el valor del watchdog (0..3) desplaçat als bits 5:4
   escriuRegistre8(REG_TIMER_CONTROL, reg15);
 
-  switch (watchdog) {
+  switch (WATCHDOG) {
     case 0: Serial.println("Watchdog:         DISABLED"); break;
     case 1: Serial.println("Watchdog:         40s");     break;
     case 2: Serial.println("Watchdog:         80s");     break;
@@ -273,10 +273,10 @@ void configuracioCarregaBateria(){
   setBitRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL, 1, false);     // 1) Netejar bits 1:2
   setBitRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL, 2, false);
   uint8_t reg14 = llegeixRegistre(REG_PRECHARGE_AND_TERMINATION_CONTROL);
-  reg14 |= (Vbat_lowv << 1);           // 2) Escriure el valor del Vbat_lowv (0..3) desplaçat als bits
+  reg14 |= (VBAT_LOWV << 1);           // 2) Escriure el valor del Vbat_lowv (0..3) desplaçat als bits
   escriuRegistre8(REG_PRECHARGE_AND_TERMINATION_CONTROL, reg14);
 
-  switch (Vbat_lowv) {
+  switch (VBAT_LOWV) {
     case 0: Serial.print("Vbat_lowv:        30% x VFB_REG --> ");Serial.println(Vfeedback*0.3); break;
     case 1: Serial.print("Vbat_lowv:        55% x VFB_REG");     Serial.println(Vfeedback*0.55); break;
     case 2: Serial.print("Vbat_lowv:        66.7% x VFB_REG");   Serial.println(Vfeedback*0.667); break;
@@ -359,56 +359,65 @@ void lecturaStatus(){
   uint8_t status1 = llegeixRegistre(REG_CHARGER_STATUS_1);
   Serial.print("Charger Status 1 (0x21): 0b");
   Serial.println(status1, BIN);
+
   Serial.print("  [7] ADC_DONE_STAT: ");
-  Serial.println((status1 & 0x80) ? "Conversion complete" : "Not complete");
+  Serial.println((status1 & ADC_DONE_MASK) ? "Conversion complete" : "Not complete");
+
   Serial.print("  [6] IAC_DPM_STAT: ");
-  Serial.println((status1 & 0x40) ? "In Input Current regulation" : "Normal");
+  Serial.println((status1 & IAC_DPM_MASK) ? "In Input Current regulation" : "Normal");
+
   Serial.print("  [5] VAC_DPM_STAT: ");
-  Serial.println((status1 & 0x20) ? "In Input Voltage regulation" : "Normal");
+  Serial.println((status1 & VAC_DPM_MASK) ? "In Input Voltage regulation" : "Normal");
+
   Serial.print("  [3] WD_STAT: ");
-  Serial.println((status1 & 0x08) ? "WD timer expired" : "Normal");
+  Serial.println((status1 & WATCHDOG_MASK) ? "WD timer expired" : "Normal");
+
   Serial.print("  [2:0] CHARGE_STAT: ");
-  uint8_t chg_stat = status1 & 0x07;
+  uint8_t chg_stat = status1 & CHARGE_MASK;
   switch(chg_stat) {
-    case 0b000: Serial.println("Not Charging"); break;
-    case 0b001: Serial.println("Trickle Charge (VBAT < VBAT_SHORT)"); break;
-    case 0b010: Serial.println("Pre-Charge (VBAT < VBAT_LOWV)"); break;
-    case 0b011: Serial.println("Fast Charge (CC mode)"); break;
-    case 0b100: Serial.println("Taper Charge (CV mode)"); break;
-    case 0b101: Serial.println("Reserved"); break;
-    case 0b110: Serial.println("Top-off Timer Charge"); break;
-    case 0b111: Serial.println("Charge Termination Done"); break;
+    case CHARGE_STATE_NOT_CHARGING  : Serial.println("Not Charging"); break;
+    case CHARGE_STATE_TRICKLE       : Serial.println("Trickle Charge (VBAT < VBAT_SHORT)"); break;
+    case CHARGE_STATE_PRE_CHARGE    : Serial.println("Pre-Charge (VBAT < VBAT_LOWV)"); break;
+    case CHARGE_STATE_FAST_CHARGE   : Serial.println("Fast Charge (CC mode)"); break;
+    case CHARGE_STATE_TAPER_CHARGE  : Serial.println("Taper Charge (CV mode)"); break;
+    case CHARGE_STATE_RESERVED      : Serial.println("Reserved"); break;
+    case CHARGE_STATE_TOP_OFF       : Serial.println("Top-off Timer Charge"); break;
+    case CHARGE_STATE_DONE          : Serial.println("Charge Termination Done"); break;
   }
   
   // CHARGER STATUS 2 (0x22)
   uint8_t status2 = llegeixRegistre(REG_CHARGER_STATUS_2);
   Serial.print("\nCharger Status 2 (0x22): 0b");
   Serial.println(status2, BIN);
+
   Serial.print("  [7] PG_STAT: ");
-  Serial.println((status2 & 0x80) ? "Power Good" : "Not Power Good");
+  Serial.println((status2 & PG_MASK) ? "Power Good" : "Not Power Good");
+
   Serial.print("  [6:4] TS_STAT: ");
-  uint8_t ts_stat = (status2 >> 4) & 0x07;
+  uint8_t ts_stat = (status2 >> 4) & TS_MASK;
   switch(ts_stat) {
-    case 0b000: Serial.println("Normal"); break;
-    case 0b001: Serial.println("TS Warm"); break;
-    case 0b010: Serial.println("TS Cool"); break;
-    case 0b011: Serial.println("TS Cold"); break;
-    case 0b100: Serial.println("TS Hot"); break;
+    case TS_STATUS_NORMAL : Serial.println("Normal"); break;
+    case TS_STATUS_WARM   : Serial.println("TS Warm"); break;
+    case TS_STATUS_COOL   : Serial.println("TS Cool"); break;
+    case TS_STATUS_COLD   : Serial.println("TS Cold"); break;
+    case TS_STATUS_HOT    : Serial.println("TS Hot"); break;
     default: Serial.println("Unknown"); break;
   }
+
   Serial.print("  [1:0] MPPT_STAT: ");
-  uint8_t mppt_stat = status2 & 0x03;
+  uint8_t mppt_stat = status2 & MPPT_MASK;
   switch(mppt_stat) {
-    case 0b00: Serial.println("MPPT Disabled"); break;
-    case 0b01: Serial.println("MPPT Enabled, But Not Running"); break;
-    case 0b10: Serial.println("Full Panel Sweep In Progress"); break;
-    case 0b11: Serial.println("Max Power Voltage Detected"); break;
+    case MPPT_DISABLED  : Serial.println("MPPT Disabled"); break;
+    case MPPT_STANDBY   : Serial.println("MPPT Enabled, But Not Running"); break;
+    case MPPT_PANELSWEEP: Serial.println("Full Panel Sweep In Progress"); break;
+    case MPPT_ENABLED   : Serial.println("Max Power Voltage Detected"); break;
   }
   
   // CHARGER STATUS 3 (0x23)
   uint8_t status3 = llegeixRegistre(REG_CHARGER_STATUS_3);
   Serial.print("\nCharger Status 3 (0x23): 0b");
   Serial.println(status3, BIN);
+
   Serial.print("  [5:4] FSW_SYNC_STAT: ");
   uint8_t fsw_stat = (status3 >> 4) & 0x03;
   switch(fsw_stat) {
@@ -419,6 +428,7 @@ void lecturaStatus(){
   }
   Serial.print("  [3] CV_TMR_STAT: ");
   Serial.println((status3 & 0x08) ? "CV Timer Expired" : "Normal");
+  
   Serial.print("  [2] REVERSE_STAT: ");
   Serial.println((status3 & 0x04) ? "Reverse Mode ON" : "Reverse Mode OFF");
   
@@ -544,7 +554,9 @@ void loop() {
   // Watchdog reset periòdic
   static unsigned long previousTime = 0;
   if (millis() - previousTime > 100) {
-    setBitRegistre(0x17, 5, true);    // WD_RST
+    setBitRegistre(REG_CHARGER_CONTROL, 5, watchdog_reset);
+    Serial.println(watchdog_reset ? "Watchdog reseted" : "");
+
     lecturaADCs();
     previousTime = millis();
   }
